@@ -1,0 +1,53 @@
+# 💠 Minhas Finanças
+
+Sistema simples e gratuito para controlar sua vida financeira: quanto você **ganha**, quanto você **gasta**, suas **metas** e um resumo visual com **gráficos**. Tema azul e branco, 100% front-end (HTML, CSS e JavaScript puro) — não precisa de servidor, banco de dados ou instalação.
+
+## ✨ Funcionalidades
+
+- 🏦 **Renda fixa** — salário, aposentadoria, aluguéis recebidos etc.
+- 💸 **Renda extra** — freelas, vendas, bônus e qualquer entrada não recorrente.
+- 🧾 **Gastos** — todas as suas saídas, organizadas por categoria.
+- 🎯 **Metas** — defina um objetivo (ex: viagem, reserva de emergência) e acompanhe o progresso com barra visual.
+- 🎨 **Ícone personalizado** para cada lançamento e cada meta (escolha entre vários emojis).
+- 📊 **Gráficos** (Chart.js): comparação de entradas x gastos nos últimos 6 meses e distribuição de gastos por categoria.
+- 💾 Os dados ficam salvos no **localStorage** do seu navegador — tudo privado, nada é enviado para nenhum servidor.
+- 📱 Layout responsivo (funciona bem no celular também).
+
+## 🚀 Como usar
+
+### Opção 1 — Direto no navegador
+1. Baixe/extraia este repositório.
+2. Dê duplo clique no arquivo `index.html`.
+3. Pronto, o sistema já abre funcionando no seu navegador.
+
+### Opção 2 — GitHub Pages (para acessar de qualquer lugar)
+1. Suba este repositório para o seu GitHub.
+2. Vá em **Settings → Pages**.
+3. Em "Branch", selecione `main` e a pasta `/root`, depois clique em **Save**.
+4. Em alguns minutos seu site estará disponível em `https://SEU-USUARIO.github.io/NOME-DO-REPOSITORIO/`.
+
+## 🗂️ Estrutura do projeto
+
+```
+financas-app/
+├── index.html   → estrutura das telas (Painel, Renda Fixa, Renda Extra, Gastos, Metas)
+├── style.css    → tema visual azul e branco
+├── app.js       → toda a lógica: cadastro, gráficos, metas e armazenamento
+└── README.md    → este arquivo
+```
+
+## 🛠️ Tecnologias
+
+- HTML5 + CSS3
+- JavaScript puro (sem frameworks)
+- [Chart.js](https://www.chartjs.org/) (via CDN) para os gráficos
+- `localStorage` para persistência dos dados no navegador
+
+## 📌 Observações
+
+- Como os dados ficam no `localStorage`, eles são salvos **por navegador/dispositivo**. Se você abrir em outro computador ou limpar os dados do navegador, as informações são perdidas.
+- O botão **"Limpar tudo"** na barra lateral apaga todos os lançamentos e metas salvos.
+
+---
+
+Feito com 💙 para ajudar a organizar suas finanças.
