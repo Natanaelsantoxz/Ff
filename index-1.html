@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Minhas Finanças</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --azul-950:#061A33;
+    --azul-900:#0B2545;
+    --azul-700:#1257A8;
+    --azul-500:#2E7BE0;
+    --azul-400:#4A9BFF;
+    --azul-300:#8FBFFF;
+    --azul-100:#EEF4FF;
+    --azul-50:#F6FAFF;
+    --branco:#FFFFFF;
+    --cinza-texto:#2B3A55;
+    --cinza-claro:#8DA0BF;
+    --verde:#16B981;
+    --verde-bg:#E3FBF1;
+    --vermelho:#F0455A;
+    --vermelho-bg:#FFE9EC;
+    --sombra: 0 4px 14px rgba(11,37,69,0.06);
+    --sombra-forte: 0 8px 20px rgba(11,37,69,0.10);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter', -apple-system, sans-serif;
+    background:var(--azul-50);
+    color:var(--cinza-texto);
+    padding-bottom:96px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  h1,h2,h3,.font-title{ font-family:'Poppins', 'Inter', sans-serif; }
+
+  /* ---------- TELA DE PERFIL / BLOQUEIO ---------- */
+  .tela-perfil{
+    position:fixed; inset:0;
+    background:var(--azul-900);
+    z-index:200;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .tela-perfil.hidden{ display:none; }
+  .perfil-box{
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.14);
+    backdrop-filter:blur(14px);
+    border-radius:24px;
+    padding:32px 26px;
+    width:100%;
+    max-width:360px;
+    color:var(--branco);
+    text-align:center;
+    box-shadow:var(--sombra-forte);
+  }
+  .perfil-box .emoji-topo{ font-size:44px; margin-bottom:6px; }
+  .perfil-box h2{ margin:0 0 4px; font-size:20px; }
+  .perfil-box p{ margin:0 0 20px; font-size:13px; opacity:0.75; }
+  .avatar-grid{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .avatar-opt{
+    background:rgba(255,255,255,0.08);
+    border:2px solid transparent;
+    border-radius:12px;
+    font-size:20px;
+    padding:8px 0;
+    cursor:pointer;
+  }
+  .avatar-opt.selected{ border-color:var(--azul-400); background:rgba(74,155,255,0.25); }
+  .perfil-box input{
+    width:100%;
+    padding:12px 14px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.2);
+    background:rgba(255,255,255,0.08);
+    color:var(--branco);
+    font-size:14px;
+    margin-bottom:12px;
+    text-align:center;
+    letter-spacing:0.5px;
+  }
+  .perfil-box input::placeholder{ color:rgba(255,255,255,0.5); }
+  .perfil-box .btn-primario{
+    width:100%;
+    padding:13px;
+    border:none;
+    border-radius:12px;
+    background:var(--azul-500);
+    color:var(--branco);
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .perfil-box .link-secundario{
+    display:block;
+    margin-top:14px;
+    font-size:12px;
+    color:rgba(255,255,255,0.6);
+    background:none;
+    border:none;
+    cursor:pointer;
+    text-decoration:underline;
+  }
+  .perfil-box .erro-pin{
+    color:#FFB4BE;
+    font-size:12px;
+    margin:-6px 0 12px;
+    min-height:14px;
+  }
+  .avatar-badge img,
+  .emoji-topo img,
+  .avatar-opt img,
+  .foto-preview-circle img{
+    width:100%; height:100%;
+    object-fit:cover;
+    border-radius:50%;
+    display:block;
+  }
+  .foto-upload-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:12px;
+  }
+  .foto-preview-circle{
+    width:52px; height:52px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.1);
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px;
+    flex-shrink:0;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.2);
+  }
+  .modal .foto-preview-circle{
+    background:var(--azul-100);
+    border:1px solid #E3EDFB;
+  }
+  .foto-upload-btns{ display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
+  .btn-upload-foto{
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.25);
+    color:var(--branco);
+    font-size:12px;
+    font-weight:600;
+    padding:8px 12px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .modal .btn-upload-foto{
+    background:var(--azul-100);
+    border:1px solid #DCE9FC;
+    color:var(--azul-700);
+  }
+  .link-secundario-mini{
+    background:none;
+    border:none;
+    font-size:11px;
+    color:rgba(255,255,255,0.6);
+    text-decoration:underline;
+    cursor:pointer;
+    padding:0;
+  }
+  .modal .link-secundario-mini{ color:var(--cinza-claro); }
+  .ou-divisor{
+    font-size:11px;
+    opacity:0.6;
+    margin:0 0 8px;
+    text-align:center;
+  }
+  .cor-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .cor-row input[type="color"]{
+    width:44px; height:34px;
+    border:none;
+    border-radius:8px;
+    background:none;
+    cursor:pointer;
+    padding:0;
+  }
+  .cor-presets{ display:flex; gap:6px; }
+  .cor-preset{
+    width:24px; height:24px;
+    border-radius:50%;
+    border:2px solid #FFFFFF;
+    box-shadow:0 0 0 1px #E3EDFB;
+    cursor:pointer;
+    padding:0;
+  }
+
+  /* ---------- HEADER ---------- */
+  header{
+    background:linear-gradient(160deg,var(--azul-900) 0%, var(--azul-500) 100%);
+    color:var(--branco);
+    padding:22px 20px 30px;
+    border-radius:0 0 24px 24px;
+    box-shadow:var(--sombra);
+  }
+  .header-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .header-user{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .header-user .avatar-badge{
+    width:38px; height:38px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.15);
+    border:1px solid rgba(255,255,255,0.25);
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px;
+  }
+  .header-user .txt h1{ margin:0; font-size:15px; font-weight:700; }
+  .header-user .txt p{ margin:0; font-size:11px; opacity:0.75; }
+  .btn-perfil-config{
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.2);
+    color:var(--branco);
+    width:34px; height:34px;
+    border-radius:50%;
+    font-size:15px;
+    cursor:pointer;
+  }
+
+  .saldo-card{
+    margin-top:18px;
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:20px;
+    padding:16px 18px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    row-gap:14px;
+  }
+  .saldo-item{ text-align:left; }
+  .saldo-item .label{ font-size:10.5px; opacity:0.75; text-transform:uppercase; letter-spacing:0.6px;}
+  .saldo-item .valor{ font-size:17px; font-weight:700; margin-top:3px; font-family:'Poppins',sans-serif;}
+  .saldo-item.pendente .valor{ color:#FFC7CE;}
+  .saldo-item.pago .valor{ color:#BFF3DE;}
+  .saldo-item.renda .valor{ color:#D8F7E0;}
+  .saldo-item.saldo .valor.negativo{ color:#FFC7CE; }
+  .saldo-item.saldo .valor.positivo{ color:#BFF3DE; }
+
+  main{ max-width:480px; margin:0 auto; padding:20px 16px 0;}
+
+  .tabs{
+    position:fixed;
+    bottom:14px; left:0; right:0;
+    margin:0 auto;
+    max-width:440px;
+    background:var(--branco);
+    display:flex;
+    box-shadow:var(--sombra-forte);
+    z-index:50;
+    border-radius:20px;
+    padding:6px;
+    border:1px solid #EAF1FB;
+  }
+  .tab-btn{
+    flex:1;
+    border:none;
+    background:none;
+    padding:9px 4px 8px;
+    font-size:10.5px;
+    color:var(--cinza-claro);
+    font-weight:600;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    cursor:pointer;
+    border-radius:14px;
+    transition:background .2s ease, color .2s ease;
+  }
+  .tab-btn .icon{ font-size:18px; }
+  .tab-btn.active{ color:var(--azul-500); background:var(--azul-100); }
+
+  .view{ display:none; animation:fadeIn .3s ease; }
+  .view.active{ display:block; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  .section-title{
+    font-size:14.5px;
+    font-weight:700;
+    color:var(--azul-900);
+    margin:22px 0 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-family:'Poppins',sans-serif;
+  }
+  .section-title span.count{
+    font-size:11px;
+    background:var(--azul-100);
+    color:var(--azul-700);
+    padding:3px 9px;
+    border-radius:20px;
+    font-weight:600;
+  }
+
+  .card{
+    background:var(--branco);
+    border-radius:18px;
+    padding:16px 17px;
+    box-shadow:var(--sombra);
+    margin-bottom:12px;
+    border:1px solid #F0F5FC;
+  }
+
+  .bill{ display:flex; align-items:center; gap:12px; }
+  .bill .icon-badge{
+    width:44px;height:44px;
+    border-radius:14px;
+    background:var(--azul-100);
+    display:flex;align-items:center;justify-content:center;
+    font-size:21px;
+    flex-shrink:0;
+  }
+  .bill.pago .icon-badge{ background:var(--verde-bg); }
+  .bill-info{ flex:1; min-width:0; }
+  .bill-info .nome{ font-weight:700; font-size:14px; color:var(--azul-900); }
+  .bill-info .venc{ font-size:12px; color:var(--cinza-claro); margin-top:2px; }
+  .bill-info .venc.atrasado{ color:var(--vermelho); font-weight:600; }
+  .bill-valor{ text-align:right; }
+  .bill-valor .valor{ font-weight:700; font-size:14px; color:var(--azul-900); }
+  .status-pill{
+    margin-top:5px;
+    display:inline-block;
+    font-size:10px;
+    font-weight:700;
+    padding:4px 10px;
+    border-radius:20px;
+    cursor:pointer;
+    border:none;
+  }
+  .status-pill.pendente{ background:var(--vermelho-bg); color:var(--vermelho); }
+  .status-pill.pago{ background:var(--verde-bg); color:var(--verde); }
+
+  .goal-card{ padding:17px; }
+  .goal-top{ display:flex; align-items:center; gap:12px; margin-bottom:10px;}
+  .goal-top .icon-badge{
+    width:44px;height:44px;border-radius:14px;
+    background:var(--azul-100);
+    display:flex;align-items:center;justify-content:center;
+    font-size:21px; flex-shrink:0;
+  }
+  .goal-info .nome{ font-weight:700; font-size:14px; color:var(--azul-900);}
+  .goal-info .metas-valores{ font-size:12px; color:var(--cinza-claro); margin-top:2px;}
+  .progress-bar-bg{
+    background:var(--azul-100);
+    border-radius:20px;
+    height:10px;
+    overflow:hidden;
+    margin:9px 0 11px;
+  }
+  .progress-bar-fill{
+    height:100%;
+    background:var(--azul-500);
+    border-radius:20px;
+    transition:width .4s ease;
+  }
+  .goal-actions{ display:flex; gap:8px; }
+  .goal-actions input{
+    flex:1;
+    border:1px solid #DCE8F7;
+    border-radius:10px;
+    padding:9px 10px;
+    font-size:13px;
+    width:0;
+    background:var(--azul-50);
+  }
+  .goal-actions button{
+    background:var(--azul-500);
+    color:var(--branco);
+    border:none;
+    border-radius:10px;
+    padding:9px 14px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .goal-actions button.retirar{ background:var(--cinza-claro); }
+
+  .fab{
+    position:fixed;
+    bottom:96px;
+    right:18px;
+    max-width:480px;
+    width:54px;height:54px;
+    border-radius:16px;
+    background:var(--azul-500);
+    color:var(--branco);
+    border:none;
+    font-size:25px;
+    box-shadow:var(--sombra-forte);
+    cursor:pointer;
+    z-index:40;
+  }
+
+  .empty{
+    text-align:center;
+    color:var(--cinza-claro);
+    font-size:13px;
+    padding:30px 10px;
+  }
+
+  /* Modal */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(6,26,51,0.5);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:100;
+  }
+  .overlay.active{ display:flex; }
+  .modal{
+    background:var(--branco);
+    width:100%;
+    max-width:480px;
+    border-radius:26px 26px 0 0;
+    padding:22px 20px 28px;
+    max-height:85vh;
+    overflow-y:auto;
+    animation:slideUp .25s ease;
+  }
+  @keyframes slideUp{ from{transform:translateY(30px); opacity:0;} to{transform:translateY(0); opacity:1;} }
+  .modal h3{
+    margin:0 0 14px;
+    font-size:17px;
+    color:var(--azul-900);
+    font-family:'Poppins',sans-serif;
+  }
+  .campo{ margin-bottom:12px; }
+  .campo label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--azul-700);
+    margin-bottom:5px;
+  }
+  .campo input{
+    width:100%;
+    padding:11px 12px;
+    border:1px solid #DCE8F7;
+    border-radius:12px;
+    font-size:14px;
+    background:var(--azul-50);
+  }
+  .icon-grid{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:8px;
+    margin-top:6px;
+  }
+  .icon-opt{
+    background:var(--azul-100);
+    border:2px solid transparent;
+    border-radius:12px;
+    font-size:19px;
+    padding:8px 0;
+    cursor:pointer;
+  }
+  .icon-opt.selected{ border-color:var(--azul-500); background:#D7E9FF; }
+  .modal-actions{ display:flex; gap:10px; margin-top:16px; }
+  .modal-actions button{
+    flex:1;
+    padding:13px;
+    border-radius:14px;
+    border:none;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .btn-cancelar{ background:#EEF3FA; color:var(--cinza-texto); }
+  .btn-salvar{ background:var(--azul-500); color:var(--branco); }
+  .btn-excluir{
+    background:none;
+    border:none;
+    color:var(--vermelho);
+    font-size:12px;
+    font-weight:600;
+    margin-top:10px;
+    cursor:pointer;
+    display:block;
+    width:100%;
+    text-align:center;
+  }
+  .campo select{
+    width:100%;
+    padding:11px 12px;
+    border:1px solid #DCE8F7;
+    border-radius:12px;
+    font-size:14px;
+    background:var(--azul-50);
+    color:var(--cinza-texto);
+  }
+  .linha{ display:flex; gap:10px; }
+  .linha .campo{ flex:1; }
+
+  .btn-acao{
+    width:100%;
+    background:var(--azul-500);
+    color:var(--branco);
+    border:none;
+    border-radius:12px;
+    padding:13px;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  .btn-acao.gasto{ background:var(--vermelho); }
+  .btn-acao.ganho{ background:var(--verde); }
+
+  .lancamento-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:9px 0;
+    border-bottom:1px solid var(--azul-100);
+    font-size:13px;
+  }
+  .lancamento-item:last-child{ border-bottom:none; }
+  .lancamento-item .desc{ color:var(--cinza-texto); font-weight:600; }
+  .lancamento-item .data-lanc{ color:var(--cinza-claro); font-size:11px; margin-top:1px; }
+  .lancamento-item .valor-lanc.gasto{ color:var(--vermelho); font-weight:700; }
+  .lancamento-item .valor-lanc.ganho{ color:var(--verde); font-weight:700; }
+  .lancamento-item .remover{
+    background:none; border:none; color:var(--cinza-claro);
+    font-size:15px; cursor:pointer; margin-left:8px; padding:0 4px;
+  }
+  .resumo-hoje{
+    display:flex;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .resumo-hoje .mini-card{
+    flex:1;
+    background:var(--branco);
+    border-radius:16px;
+    padding:13px;
+    box-shadow:var(--sombra);
+    text-align:center;
+    border:1px solid #F0F5FC;
+  }
+  .resumo-hoje .mini-card .label{ font-size:10.5px; color:var(--cinza-claro); font-weight:600; text-transform:uppercase; letter-spacing:0.3px;}
+  .resumo-hoje .mini-card .valor{ font-size:16px; font-weight:800; margin-top:5px; font-family:'Poppins',sans-serif;}
+  .resumo-hoje .mini-card.ganho .valor{ color:var(--verde); }
+  .resumo-hoje .mini-card.gasto .valor{ color:var(--vermelho); }
+  .grafico-wrap{
+    background:var(--branco);
+    border-radius:18px;
+    padding:16px;
+    box-shadow:var(--sombra);
+    margin-bottom:12px;
+    border:1px solid #F0F5FC;
+  }
+  .grafico-wrap canvas{ max-height:220px; }
+
+  .calc-resultado{
+    background:var(--azul-900);
+    color:var(--branco);
+    border-radius:16px;
+    padding:20px;
+    margin-top:14px;
+  }
+  .calc-resultado .linha-resultado{
+    display:flex;
+    justify-content:space-between;
+    padding:8px 0;
+    font-size:13px;
+    border-bottom:1px solid rgba(255,255,255,0.15);
+  }
+  .calc-resultado .linha-resultado:last-child{ border-bottom:none; }
+  .calc-resultado .linha-resultado .label{ opacity:0.8; }
+  .calc-resultado .linha-resultado .valor{ font-weight:700; }
+  .calc-resultado .valor-total{
+    font-size:25px;
+    font-weight:800;
+    text-align:center;
+    margin-bottom:6px;
+    font-family:'Poppins',sans-serif;
+  }
+  .calc-resultado .valor-total-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    opacity:0.75;
+    text-align:center;
+    margin-bottom:2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- TELA DE PERFIL / LOGIN LOCAL -->
+<div class="tela-perfil" id="telaPerfil">
+  <div class="perfil-box" id="perfilBoxSetup">
+    <div class="emoji-topo">👋</div>
+    <h2>Bem-vindo(a)!</h2>
+    <p>Crie seu perfil local para acessar seu painel financeiro.</p>
+    <input type="text" id="setupNome" placeholder="Seu nome" maxlength="20">
+    <div class="foto-upload-row">
+      <div class="foto-preview-circle" id="setupFotoPreview">🙂</div>
+      <div class="foto-upload-btns">
+        <label class="btn-upload-foto" for="setupFotoInput">📷 Escolher foto</label>
+        <input type="file" accept="image/*" id="setupFotoInput" style="display:none">
+        <button type="button" class="link-secundario-mini" id="setupFotoRemover" style="display:none">Remover foto</button>
+      </div>
+    </div>
+    <p class="ou-divisor">ou escolha um avatar</p>
+    <div class="avatar-grid" id="avatarGrid"></div>
+    <input type="password" id="setupPin" placeholder="PIN de 4 dígitos (opcional)" maxlength="4" inputmode="numeric">
+    <button class="btn-primario" onclick="criarPerfil()">Entrar</button>
+  </div>
+
+  <div class="perfil-box" id="perfilBoxLogin" style="display:none;">
+    <div class="emoji-topo" id="loginAvatarTopo">🙂</div>
+    <h2 id="loginSaudacao">Olá!</h2>
+    <p>Digite seu PIN para acessar</p>
+    <input type="password" id="loginPin" placeholder="PIN" maxlength="4" inputmode="numeric">
+    <div class="erro-pin" id="erroPin"></div>
+    <button class="btn-primario" onclick="validarPin()">Acessar</button>
+    <button class="link-secundario" onclick="resetarPerfil()">Criar novo perfil (apaga o atual)</button>
+  </div>
+</div>
+
+<header>
+  <div class="header-top">
+    <div class="header-user">
+      <div class="avatar-badge" id="avatarHeader">🙂</div>
+      <div class="txt">
+        <h1 id="saudacaoHeader">Olá!</h1>
+        <p>Seu painel financeiro</p>
+      </div>
+    </div>
+    <button class="btn-perfil-config" onclick="abrirModal('overlayPerfilConfig')">⚙️</button>
+  </div>
+
+  <div class="saldo-card">
+    <div class="saldo-item renda">
+      <div class="label">Renda no mês</div>
+      <div class="valor" id="totalRenda">R$ 0,00</div>
+    </div>
+    <div class="saldo-item pendente">
+      <div class="label">A pagar</div>
+      <div class="valor" id="totalPendente">R$ 0,00</div>
+    </div>
+    <div class="saldo-item pago">
+      <div class="label">Pago no mês</div>
+      <div class="valor" id="totalPago">R$ 0,00</div>
+    </div>
+    <div class="saldo-item saldo">
+      <div class="label">Saldo previsto</div>
+      <div class="valor" id="totalSaldo">R$ 0,00</div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- INÍCIO -->
+  <div class="view active" id="view-inicio">
+
+    <div class="section-title">Hoje</div>
+    <div class="resumo-hoje">
+      <div class="mini-card ganho">
+        <div class="label">Ganhei hoje</div>
+        <div class="valor" id="ganhoHoje">R$ 0,00</div>
+      </div>
+      <div class="mini-card gasto">
+        <div class="label">Gastei hoje</div>
+        <div class="valor" id="gastoHoje">R$ 0,00</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="linha">
+        <div class="campo">
+          <label>Valor ganho (R$)</label>
+          <input type="number" step="0.01" id="ganhoValor" placeholder="Ex: 120,00">
+        </div>
+        <div class="campo">
+          <label>De onde?</label>
+          <input type="text" id="ganhoDesc" placeholder="Ex: Freelance">
+        </div>
+      </div>
+      <button class="btn-acao ganho" onclick="registrarGanho()">Registrar ganho de hoje</button>
+    </div>
+
+    <div class="card">
+      <div class="linha">
+        <div class="campo">
+          <label>Valor gasto (R$)</label>
+          <input type="number" step="0.01" id="gastoValor" placeholder="Ex: 35,00">
+        </div>
+        <div class="campo">
+          <label>Com o quê?</label>
+          <input type="text" id="gastoDesc" placeholder="Ex: Mercado">
+        </div>
+      </div>
+      <button class="btn-acao gasto" onclick="registrarGasto()">Registrar gasto de hoje</button>
+    </div>
+
+    <div class="section-title">Lançamentos de hoje</div>
+    <div class="card" id="cardLancamentosHoje">
+      <div id="listaLancamentosHoje"></div>
+    </div>
+
+    <div class="section-title">Ganhos x Gastos (últimos 7 dias)</div>
+    <div class="grafico-wrap">
+      <canvas id="graficoSemana"></canvas>
+    </div>
+
+    <div class="section-title">Renda fixa mensal</div>
+    <div class="card">
+      <div class="campo">
+        <label>Salário ou renda fixa (R$)</label>
+        <input type="number" step="0.01" id="rendaMensal" placeholder="Ex: 2000,00">
+      </div>
+      <button class="btn-acao" onclick="salvarRenda()">Salvar renda fixa</button>
+    </div>
+
+    <div class="section-title">Próximas contas <span class="count" id="countProximas">0</span></div>
+    <div id="listaProximas"></div>
+
+    <div class="section-title">Metas em andamento <span class="count" id="countMetasResumo">0</span></div>
+    <div id="listaMetasResumo"></div>
+  </div>
+
+  <!-- CONTAS -->
+  <div class="view" id="view-contas">
+    <div class="section-title">Contas a pagar <span class="count" id="countContas">0</span></div>
+    <div id="listaContas"></div>
+  </div>
+
+  <!-- METAS -->
+  <div class="view" id="view-metas">
+    <div class="section-title">Minhas metas <span class="count" id="countMetas">0</span></div>
+    <div id="listaMetas"></div>
+  </div>
+
+  <!-- CALCULADORA -->
+  <div class="view" id="view-calculadora">
+    <div class="section-title">Calculadora de investimento</div>
+    <div class="card">
+      <div class="campo">
+        <label>Valor inicial (R$)</label>
+        <input type="number" step="0.01" id="calcInicial" placeholder="Ex: 1000,00">
+      </div>
+      <div class="campo">
+        <label>Aporte mensal (R$)</label>
+        <input type="number" step="0.01" id="calcAporte" placeholder="Ex: 300,00">
+      </div>
+      <div class="linha">
+        <div class="campo">
+          <label>Taxa de juros (% ao mês)</label>
+          <input type="number" step="0.01" id="calcTaxa" placeholder="Ex: 0,8">
+        </div>
+        <div class="campo">
+          <label>Período (meses)</label>
+          <input type="number" step="1" id="calcMeses" placeholder="Ex: 24">
+        </div>
+      </div>
+      <button class="btn-acao" onclick="calcularInvestimento()">Calcular</button>
+
+      <div class="calc-resultado" id="calcResultado" style="display:none;">
+        <div class="valor-total-label">Valor final estimado</div>
+        <div class="valor-total" id="calcValorFinal">R$ 0,00</div>
+        <div class="linha-resultado"><span class="label">Total investido</span><span class="valor" id="calcTotalInvestido">R$ 0,00</span></div>
+        <div class="linha-resultado"><span class="label">Juros ganhos</span><span class="valor" id="calcJuros">R$ 0,00</span></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<button class="fab" id="fabAdd">＋</button>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-view="inicio"><span class="icon">🏠</span>Início</button>
+  <button class="tab-btn" data-view="contas"><span class="icon">🧾</span>Contas</button>
+  <button class="tab-btn" data-view="metas"><span class="icon">🎯</span>Metas</button>
+  <button class="tab-btn" data-view="calculadora"><span class="icon">🧮</span>Calc.</button>
+</nav>
+
+<!-- MODAL NOVA CONTA -->
+<div class="overlay" id="overlayConta">
+  <div class="modal">
+    <h3 id="tituloModalConta">Nova conta</h3>
+    <div class="campo">
+      <label>Nome da conta</label>
+      <input type="text" id="contaNome" placeholder="Ex: Conta de luz">
+    </div>
+    <div class="campo">
+      <label>Valor (R$)</label>
+      <input type="number" step="0.01" id="contaValor" placeholder="Ex: 150,00">
+    </div>
+    <div class="campo">
+      <label>Data de vencimento</label>
+      <input type="date" id="contaData">
+    </div>
+    <div class="campo">
+      <label>Ícone</label>
+      <div class="icon-grid" id="gridIconesConta"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancelar" onclick="fecharModal('overlayConta')">Cancelar</button>
+      <button class="btn-salvar" onclick="salvarConta()">Salvar</button>
+    </div>
+    <button class="btn-excluir" id="btnExcluirConta" style="display:none" onclick="excluirConta()">Excluir esta conta</button>
+  </div>
+</div>
+
+<!-- MODAL NOVA META -->
+<div class="overlay" id="overlayMeta">
+  <div class="modal">
+    <h3 id="tituloModalMeta">Nova meta</h3>
+    <div class="campo">
+      <label>Nome da meta</label>
+      <input type="text" id="metaNome" placeholder="Ex: Viagem, Reserva de emergência">
+    </div>
+    <div class="campo">
+      <label>Valor objetivo (R$)</label>
+      <input type="number" step="0.01" id="metaValorAlvo" placeholder="Ex: 5000,00">
+    </div>
+    <div class="campo">
+      <label>Já guardado (R$)</label>
+      <input type="number" step="0.01" id="metaValorAtual" placeholder="Ex: 500,00">
+    </div>
+    <div class="campo">
+      <label>Ícone</label>
+      <div class="icon-grid" id="gridIconesMeta"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancelar" onclick="fecharModal('overlayMeta')">Cancelar</button>
+      <button class="btn-salvar" onclick="salvarMeta()">Salvar</button>
+    </div>
+    <button class="btn-excluir" id="btnExcluirMeta" style="display:none" onclick="excluirMeta()">Excluir esta meta</button>
+  </div>
+</div>
+
+<!-- ESCOLHA: CONTA OU META -->
+<div class="overlay" id="overlayEscolha">
+  <div class="modal">
+    <h3>O que deseja adicionar?</h3>
+    <div class="modal-actions" style="margin-top:0;">
+      <button class="btn-salvar" onclick="abrirNovaConta()">🧾 Nova conta</button>
+      <button class="btn-salvar" onclick="abrirNovaMeta()">🎯 Nova meta</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancelar" onclick="fecharModal('overlayEscolha')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PERFIL / CONFIG -->
+<div class="overlay" id="overlayPerfilConfig">
+  <div class="modal">
+    <h3>Meu perfil</h3>
+    <div class="campo">
+      <label>Nome</label>
+      <input type="text" id="configNome" maxlength="20">
+    </div>
+    <div class="campo">
+      <label>Foto de perfil</label>
+      <div class="foto-upload-row">
+        <div class="foto-preview-circle" id="configFotoPreview">🙂</div>
+        <div class="foto-upload-btns">
+          <label class="btn-upload-foto" for="configFotoInput">📷 Escolher foto</label>
+          <input type="file" accept="image/*" id="configFotoInput" style="display:none">
+          <button type="button" class="link-secundario-mini" id="configFotoRemover" style="display:none">Remover foto</button>
+        </div>
+      </div>
+    </div>
+    <div class="campo">
+      <label>Avatar (emoji, usado se não houver foto)</label>
+      <div class="icon-grid" id="gridAvatarConfig"></div>
+    </div>
+    <div class="campo">
+      <label>Cor do app</label>
+      <div class="cor-row">
+        <input type="color" id="configCor" value="#2E7BE0">
+        <div class="cor-presets" id="corPresets"></div>
+      </div>
+    </div>
+    <div class="campo">
+      <label>PIN (opcional, 4 dígitos)</label>
+      <input type="password" id="configPin" maxlength="4" inputmode="numeric" placeholder="Deixe vazio para não usar PIN">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancelar" onclick="fecharModal('overlayPerfilConfig')">Cancelar</button>
+      <button class="btn-salvar" onclick="salvarConfigPerfil()">Salvar</button>
+    </div>
+    <button class="btn-excluir" onclick="apagarTodosDados()">Apagar todos os dados deste aparelho</button>
+  </div>
+</div>
+
+<script>
+  const ICONES = ['🏠','💡','💧','📶','📱','🚗','⛽','🛒','💳','🏥','📚','🎉','🐾','👶','✈️','🍽️','🏋️','🎓','🎯','💰','🧾','🔧'];
+  const AVATARES = ['🙂','😎','🤓','👩','👨','🧑','👩‍💼','👨‍💼','👩‍🎓','👨‍🎓','🐱','🐶','🦊','🐼','🌟','💙'];
+
+  let bills = JSON.parse(localStorage.getItem('mf_bills') || '[]');
+  let goals = JSON.parse(localStorage.getItem('mf_goals') || '[]');
+  let income = JSON.parse(localStorage.getItem('mf_income') || '{"mensal":0}');
+  let expenses = JSON.parse(localStorage.getItem('mf_expenses') || '[]');
+  let incomes = JSON.parse(localStorage.getItem('mf_incomes') || '[]');
+  let perfil = JSON.parse(localStorage.getItem('mf_perfil') || 'null');
+  let graficoChart = null;
+  let iconeSelecionadoConta = ICONES[0];
+  let iconeSelecionadoMeta = ICONES[19];
+  const CORES_PRESET = ['#2E7BE0','#16B981','#8B5CF6','#F0455A','#F5A623','#0B2545'];
+  let avatarSetupSelecionado = AVATARES[0];
+  let avatarConfigSelecionado = AVATARES[0];
+  let fotoSetupSelecionada = null;
+  let fotoConfigSelecionada = null;
+  let editandoContaId = null;
+  let editandoMetaId = null;
+
+  function salvarDados(){
+    localStorage.setItem('mf_bills', JSON.stringify(bills));
+    localStorage.setItem('mf_goals', JSON.stringify(goals));
+    localStorage.setItem('mf_income', JSON.stringify(income));
+    localStorage.setItem('mf_expenses', JSON.stringify(expenses));
+    localStorage.setItem('mf_incomes', JSON.stringify(incomes));
+  }
+
+  function salvarPerfil(){
+    localStorage.setItem('mf_perfil', JSON.stringify(perfil));
+  }
+
+  function dataHojeISO(){
+    const d = new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  function formatarMoeda(v){
+    return 'R$ ' + Number(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  function formatarData(iso){
+    if(!iso) return '';
+    const [y,m,d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  function diasParaVencer(iso){
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const venc = new Date(iso+'T00:00:00');
+    return Math.round((venc - hoje)/86400000);
+  }
+
+  // ---------- PERFIL / LOGIN LOCAL ----------
+  function montarAvatarGrid(containerId, atual, callback){
+    const grid = document.getElementById(containerId);
+    grid.innerHTML = '';
+    AVATARES.forEach(av=>{
+      const div = document.createElement('div');
+      div.className = 'avatar-opt' + (av===atual ? ' selected':'');
+      div.textContent = av;
+      div.onclick = ()=>{
+        grid.querySelectorAll('.avatar-opt').forEach(e=>e.classList.remove('selected'));
+        div.classList.add('selected');
+        callback(av);
+      };
+      grid.appendChild(div);
+    });
+  }
+
+  function renderVisualPerfil(elId, avatar, foto){
+    const el = document.getElementById(elId);
+    if(!el) return;
+    el.innerHTML = foto ? `<img src="${foto}" alt="Foto de perfil">` : (avatar || '🙂');
+  }
+
+  // Lê um arquivo de imagem e devolve um dataURL redimensionado (evita estourar o localStorage)
+  function lerFotoRedimensionada(file, callback){
+    if(!file) return;
+    const leitor = new FileReader();
+    leitor.onload = (e)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const maxLado = 200;
+        let w = img.width, h = img.height;
+        if(w > h && w > maxLado){ h = Math.round(h*(maxLado/w)); w = maxLado; }
+        else if(h > maxLado){ w = Math.round(w*(maxLado/h)); h = maxLado; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        callback(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.src = e.target.result;
+    };
+    leitor.readAsDataURL(file);
+  }
+
+  document.getElementById('setupFotoInput').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    lerFotoRedimensionada(file, (dataUrl)=>{
+      fotoSetupSelecionada = dataUrl;
+      renderVisualPerfil('setupFotoPreview', avatarSetupSelecionado, fotoSetupSelecionada);
+      document.getElementById('setupFotoRemover').style.display = 'inline';
+    });
+  });
+  document.getElementById('setupFotoRemover').addEventListener('click', ()=>{
+    fotoSetupSelecionada = null;
+    document.getElementById('setupFotoInput').value = '';
+    renderVisualPerfil('setupFotoPreview', avatarSetupSelecionado, null);
+    document.getElementById('setupFotoRemover').style.display = 'none';
+  });
+
+  document.getElementById('configFotoInput').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    lerFotoRedimensionada(file, (dataUrl)=>{
+      fotoConfigSelecionada = dataUrl;
+      renderVisualPerfil('configFotoPreview', avatarConfigSelecionado, fotoConfigSelecionada);
+      document.getElementById('configFotoRemover').style.display = 'inline';
+    });
+  });
+  document.getElementById('configFotoRemover').addEventListener('click', ()=>{
+    fotoConfigSelecionada = null;
+    document.getElementById('configFotoInput').value = '';
+    renderVisualPerfil('configFotoPreview', avatarConfigSelecionado, null);
+    document.getElementById('configFotoRemover').style.display = 'none';
+  });
+
+  // ---------- COR DO APP ----------
+  function clarearOuEscurecer(hex, percent){
+    const num = parseInt(hex.replace('#',''), 16);
+    let r = (num>>16)&0xFF, g = (num>>8)&0xFF, b = num&0xFF;
+    if(percent >= 0){
+      r = Math.round(r + (255-r)*(percent/100));
+      g = Math.round(g + (255-g)*(percent/100));
+      b = Math.round(b + (255-b)*(percent/100));
+    } else {
+      const p = -percent/100;
+      r = Math.round(r*(1-p));
+      g = Math.round(g*(1-p));
+      b = Math.round(b*(1-p));
+    }
+    return '#' + [r,g,b].map(v=> Math.max(0,Math.min(255,v)).toString(16).padStart(2,'0')).join('');
+  }
+
+  function aplicarCorTema(hex){
+    if(!hex) return;
+    const raiz = document.documentElement.style;
+    raiz.setProperty('--azul-500', hex);
+    raiz.setProperty('--azul-400', clarearOuEscurecer(hex, 22));
+    raiz.setProperty('--azul-300', clarearOuEscurecer(hex, 48));
+    raiz.setProperty('--azul-700', clarearOuEscurecer(hex, -18));
+    raiz.setProperty('--azul-900', clarearOuEscurecer(hex, -38));
+    raiz.setProperty('--azul-950', clarearOuEscurecer(hex, -48));
+    raiz.setProperty('--azul-100', clarearOuEscurecer(hex, 90));
+    raiz.setProperty('--azul-50', clarearOuEscurecer(hex, 96));
+  }
+
+  function montarPresetsCor(){
+    const wrap = document.getElementById('corPresets');
+    wrap.innerHTML = '';
+    CORES_PRESET.forEach(cor=>{
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'cor-preset';
+      b.style.background = cor;
+      b.onclick = ()=>{
+        document.getElementById('configCor').value = cor;
+        aplicarCorTema(cor);
+      };
+      wrap.appendChild(b);
+    });
+  }
+  montarPresetsCor();
+
+  document.getElementById('configCor').addEventListener('input', (e)=>{
+    aplicarCorTema(e.target.value);
+  });
+
+  function iniciarTelaPerfil(){
+    if(perfil && perfil.cor) aplicarCorTema(perfil.cor);
+    if(perfil && perfil.nome){
+      document.getElementById('perfilBoxSetup').style.display = 'none';
+      document.getElementById('perfilBoxLogin').style.display = 'block';
+      renderVisualPerfil('loginAvatarTopo', perfil.avatar, perfil.foto);
+      document.getElementById('loginSaudacao').textContent = 'Olá, ' + perfil.nome + '!';
+      if(!perfil.pin){
+        document.getElementById('telaPerfil').classList.add('hidden');
+        aplicarPerfilNoHeader();
+      }
+    } else {
+      document.getElementById('perfilBoxSetup').style.display = 'block';
+      document.getElementById('perfilBoxLogin').style.display = 'none';
+      montarAvatarGrid('avatarGrid', avatarSetupSelecionado, (av)=> avatarSetupSelecionado = av);
+      renderVisualPerfil('setupFotoPreview', avatarSetupSelecionado, fotoSetupSelecionada);
+    }
+  }
+
+  function criarPerfil(){
+    const nome = document.getElementById('setupNome').value.trim();
+    const pin = document.getElementById('setupPin').value.trim();
+    if(!nome){ alert('Digite seu nome para continuar.'); return; }
+    if(pin && !/^\d{4}$/.test(pin)){ alert('O PIN deve ter exatamente 4 números.'); return; }
+    perfil = { nome, avatar: avatarSetupSelecionado, foto: fotoSetupSelecionada, cor: null, pin: pin || null };
+    salvarPerfil();
+    document.getElementById('telaPerfil').classList.add('hidden');
+    aplicarPerfilNoHeader();
+  }
+
+  function validarPin(){
+    const digitado = document.getElementById('loginPin').value.trim();
+    if(digitado === (perfil.pin||'')){
+      document.getElementById('telaPerfil').classList.add('hidden');
+      document.getElementById('erroPin').textContent = '';
+      aplicarPerfilNoHeader();
+    } else {
+      document.getElementById('erroPin').textContent = 'PIN incorreto. Tente novamente.';
+    }
+  }
+
+  function resetarPerfil(){
+    if(!confirm('Isso vai apagar o perfil atual deste aparelho (os dados financeiros continuam salvos). Deseja continuar?')) return;
+    perfil = null;
+    salvarPerfil();
+    iniciarTelaPerfil();
+  }
+
+  function aplicarPerfilNoHeader(){
+    if(!perfil) return;
+    if(perfil.cor) aplicarCorTema(perfil.cor);
+    renderVisualPerfil('avatarHeader', perfil.avatar, perfil.foto);
+    document.getElementById('saudacaoHeader').textContent = 'Olá, ' + perfil.nome + '!';
+  }
+
+  function abrirConfigPerfil(){
+    document.getElementById('configNome').value = perfil ? perfil.nome : '';
+    avatarConfigSelecionado = perfil ? (perfil.avatar || AVATARES[0]) : AVATARES[0];
+    fotoConfigSelecionada = perfil ? (perfil.foto || null) : null;
+    document.getElementById('configPin').value = perfil && perfil.pin ? perfil.pin : '';
+    document.getElementById('configCor').value = (perfil && perfil.cor) ? perfil.cor : '#2E7BE0';
+    document.getElementById('configFotoRemover').style.display = fotoConfigSelecionada ? 'inline' : 'none';
+    document.getElementById('configFotoInput').value = '';
+    montarAvatarGrid('gridAvatarConfig', avatarConfigSelecionado, (av)=> avatarConfigSelecionado = av);
+    renderVisualPerfil('configFotoPreview', avatarConfigSelecionado, fotoConfigSelecionada);
+  }
+
+  function salvarConfigPerfil(){
+    const nome = document.getElementById('configNome').value.trim();
+    const pin = document.getElementById('configPin').value.trim();
+    const cor = document.getElementById('configCor').value;
+    if(!nome){ alert('Digite um nome.'); return; }
+    if(pin && !/^\d{4}$/.test(pin)){ alert('O PIN deve ter exatamente 4 números.'); return; }
+    perfil = { nome, avatar: avatarConfigSelecionado, foto: fotoConfigSelecionada, cor: cor || null, pin: pin || null };
+    salvarPerfil();
+    aplicarPerfilNoHeader();
+    fecharModal('overlayPerfilConfig');
+  }
+
+  function apagarTodosDados(){
+    if(!confirm('Isso vai apagar TODOS os dados (contas, metas, ganhos, gastos e perfil) deste aparelho. Tem certeza?')) return;
+    localStorage.clear();
+    location.reload();
+  }
+
+  // ---------- TABS ----------
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('view-'+btn.dataset.view).classList.add('active');
+    });
+  });
+
+  // ---------- MODAIS ----------
+  function abrirModal(id){
+    if(id === 'overlayPerfilConfig') abrirConfigPerfil();
+    document.getElementById(id).classList.add('active');
+  }
+  function fecharModal(id){ document.getElementById(id).classList.remove('active'); }
+
+  document.getElementById('fabAdd').addEventListener('click', ()=> abrirModal('overlayEscolha'));
+
+  function montarGridIcones(containerId, atual, callback){
+    const grid = document.getElementById(containerId);
+    grid.innerHTML = '';
+    ICONES.forEach(ic=>{
+      const div = document.createElement('div');
+      div.className = 'icon-opt' + (ic===atual ? ' selected':'');
+      div.textContent = ic;
+      div.onclick = ()=>{
+        grid.querySelectorAll('.icon-opt').forEach(e=>e.classList.remove('selected'));
+        div.classList.add('selected');
+        callback(ic);
+      };
+      grid.appendChild(div);
+    });
+  }
+
+  function abrirNovaConta(){
+    fecharModal('overlayEscolha');
+    editandoContaId = null;
+    document.getElementById('tituloModalConta').textContent = 'Nova conta';
+    document.getElementById('contaNome').value = '';
+    document.getElementById('contaValor').value = '';
+    document.getElementById('contaData').value = '';
+    document.getElementById('btnExcluirConta').style.display = 'none';
+    iconeSelecionadoConta = ICONES[0];
+    montarGridIcones('gridIconesConta', iconeSelecionadoConta, (ic)=> iconeSelecionadoConta = ic);
+    abrirModal('overlayConta');
+  }
+
+  function abrirNovaMeta(){
+    fecharModal('overlayEscolha');
+    editandoMetaId = null;
+    document.getElementById('tituloModalMeta').textContent = 'Nova meta';
+    document.getElementById('metaNome').value = '';
+    document.getElementById('metaValorAlvo').value = '';
+    document.getElementById('metaValorAtual').value = '';
+    document.getElementById('btnExcluirMeta').style.display = 'none';
+    iconeSelecionadoMeta = ICONES[19];
+    montarGridIcones('gridIconesMeta', iconeSelecionadoMeta, (ic)=> iconeSelecionadoMeta = ic);
+    abrirModal('overlayMeta');
+  }
+
+  function editarConta(id){
+    const c = bills.find(b=>b.id===id);
+    if(!c) return;
+    editandoContaId = id;
+    document.getElementById('tituloModalConta').textContent = 'Editar conta';
+    document.getElementById('contaNome').value = c.nome;
+    document.getElementById('contaValor').value = c.valor;
+    document.getElementById('contaData').value = c.data;
+    document.getElementById('btnExcluirConta').style.display = 'block';
+    iconeSelecionadoConta = c.icone;
+    montarGridIcones('gridIconesConta', iconeSelecionadoConta, (ic)=> iconeSelecionadoConta = ic);
+    abrirModal('overlayConta');
+  }
+
+  function editarMeta(id){
+    const m = goals.find(g=>g.id===id);
+    if(!m) return;
+    editandoMetaId = id;
+    document.getElementById('tituloModalMeta').textContent = 'Editar meta';
+    document.getElementById('metaNome').value = m.nome;
+    document.getElementById('metaValorAlvo').value = m.valorAlvo;
+    document.getElementById('metaValorAtual').value = m.valorAtual;
+    document.getElementById('btnExcluirMeta').style.display = 'block';
+    iconeSelecionadoMeta = m.icone;
+    montarGridIcones('gridIconesMeta', iconeSelecionadoMeta, (ic)=> iconeSelecionadoMeta = ic);
+    abrirModal('overlayMeta');
+  }
+
+  function salvarConta(){
+    const nome = document.getElementById('contaNome').value.trim();
+    const valor = parseFloat(document.getElementById('contaValor').value);
+    const data = document.getElementById('contaData').value;
+    if(!nome || isNaN(valor) || !data){
+      alert('Preencha nome, valor e data de vencimento.');
+      return;
+    }
+    if(editandoContaId){
+      const c = bills.find(b=>b.id===editandoContaId);
+      c.nome = nome; c.valor = valor; c.data = data; c.icone = iconeSelecionadoConta;
+    } else {
+      bills.push({ id: Date.now().toString(), nome, valor, data, icone: iconeSelecionadoConta, pago:false });
+    }
+    salvarDados();
+    renderizarTudo();
+    fecharModal('overlayConta');
+  }
+
+  function excluirConta(){
+    if(!editandoContaId) return;
+    if(!confirm('Excluir esta conta?')) return;
+    bills = bills.filter(b=>b.id!==editandoContaId);
+    salvarDados();
+    renderizarTudo();
+    fecharModal('overlayConta');
+  }
+
+  function salvarMeta(){
+    const nome = document.getElementById('metaNome').value.trim();
+    const valorAlvo = parseFloat(document.getElementById('metaValorAlvo').value);
+    const valorAtual = parseFloat(document.getElementById('metaValorAtual').value) || 0;
+    if(!nome || isNaN(valorAlvo) || valorAlvo<=0){
+      alert('Preencha nome e valor objetivo.');
+      return;
+    }
+    if(editandoMetaId){
+      const m = goals.find(g=>g.id===editandoMetaId);
+      m.nome = nome; m.valorAlvo = valorAlvo; m.valorAtual = valorAtual; m.icone = iconeSelecionadoMeta;
+    } else {
+      goals.push({ id: Date.now().toString(), nome, valorAlvo, valorAtual, icone: iconeSelecionadoMeta });
+    }
+    salvarDados();
+    renderizarTudo();
+    fecharModal('overlayMeta');
+  }
+
+  function excluirMeta(){
+    if(!editandoMetaId) return;
+    if(!confirm('Excluir esta meta?')) return;
+    goals = goals.filter(g=>g.id!==editandoMetaId);
+    salvarDados();
+    renderizarTudo();
+    fecharModal('overlayMeta');
+  }
+
+  function salvarRenda(){
+    const mensal = parseFloat(document.getElementById('rendaMensal').value);
+    income.mensal = isNaN(mensal) ? income.mensal : mensal;
+    salvarDados();
+    renderizarTudo();
+  }
+
+  function registrarGanho(){
+    const valor = parseFloat(document.getElementById('ganhoValor').value);
+    const desc = document.getElementById('ganhoDesc').value.trim() || 'Ganho';
+    if(isNaN(valor) || valor<=0){
+      alert('Digite um valor válido para o ganho.');
+      return;
+    }
+    incomes.push({ id: Date.now().toString(), data: dataHojeISO(), valor, desc });
+    document.getElementById('ganhoValor').value = '';
+    document.getElementById('ganhoDesc').value = '';
+    salvarDados();
+    renderizarTudo();
+  }
+
+  function removerGanho(id){
+    incomes = incomes.filter(e=>e.id!==id);
+    salvarDados();
+    renderizarTudo();
+  }
+
+  function registrarGasto(){
+    const valor = parseFloat(document.getElementById('gastoValor').value);
+    const desc = document.getElementById('gastoDesc').value.trim() || 'Gasto';
+    if(isNaN(valor) || valor<=0){
+      alert('Digite um valor válido para o gasto.');
+      return;
+    }
+    expenses.push({ id: Date.now().toString(), data: dataHojeISO(), valor, desc });
+    document.getElementById('gastoValor').value = '';
+    document.getElementById('gastoDesc').value = '';
+    salvarDados();
+    renderizarTudo();
+  }
+
+  function removerGasto(id){
+    expenses = expenses.filter(e=>e.id!==id);
+    salvarDados();
+    renderizarTudo();
+  }
+
+  function alternarPago(id){
+    const c = bills.find(b=>b.id===id);
+    if(!c) return;
+    c.pago = !c.pago;
+    salvarDados();
+    renderizarTudo();
+  }
+
+  function ajustarMeta(id, delta){
+    const m = goals.find(g=>g.id===id);
+    const input = document.getElementById('input-meta-'+id);
+    const v = parseFloat(input.value);
+    if(isNaN(v) || v<=0){ alert('Digite um valor válido.'); return; }
+    m.valorAtual = Math.max(0, m.valorAtual + (delta * v));
+    input.value = '';
+    salvarDados();
+    renderizarTudo();
+  }
+
+  // ---------- RENDERIZAÇÃO ----------
+  function renderContas(){
+    const lista = document.getElementById('listaContas');
+    document.getElementById('countContas').textContent = bills.length;
+    if(bills.length===0){ lista.innerHTML = '<div class="empty">Nenhuma conta cadastrada.<br>Toque no botão + para adicionar.</div>'; return; }
+
+    const ordenadas = [...bills].sort((a,b)=> a.data.localeCompare(b.data));
+    lista.innerHTML = ordenadas.map(c=>{
+      const dias = diasParaVencer(c.data);
+      let vencClasse = '';
+      let vencTexto = formatarData(c.data);
+      if(!c.pago && dias<0){ vencClasse='atrasado'; vencTexto += ' (atrasada)'; }
+      else if(!c.pago && dias===0){ vencTexto += ' (vence hoje)'; }
+      return `
+      <div class="card bill ${c.pago?'pago':''}">
+        <div class="icon-badge" onclick="editarConta('${c.id}')">${c.icone}</div>
+        <div class="bill-info" onclick="editarConta('${c.id}')">
+          <div class="nome">${c.nome}</div>
+          <div class="venc ${vencClasse}">${vencTexto}</div>
+        </div>
+        <div class="bill-valor">
+          <div class="valor">${formatarMoeda(c.valor)}</div>
+          <button class="status-pill ${c.pago?'pago':'pendente'}" onclick="alternarPago('${c.id}')">${c.pago?'Pago':'Pendente'}</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderMetas(){
+    const lista = document.getElementById('listaMetas');
+    document.getElementById('countMetas').textContent = goals.length;
+    if(goals.length===0){ lista.innerHTML = '<div class="empty">Nenhuma meta cadastrada.<br>Toque no botão + para adicionar.</div>'; return; }
+
+    lista.innerHTML = goals.map(m=>{
+      const pct = Math.min(100, Math.round((m.valorAtual/m.valorAlvo)*100));
+      return `
+      <div class="card goal-card">
+        <div class="goal-top">
+          <div class="icon-badge" onclick="editarMeta('${m.id}')">${m.icone}</div>
+          <div class="goal-info" onclick="editarMeta('${m.id}')">
+            <div class="nome">${m.nome}</div>
+            <div class="metas-valores">${formatarMoeda(m.valorAtual)} de ${formatarMoeda(m.valorAlvo)} · ${pct}%</div>
+          </div>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+        <div class="goal-actions">
+          <input type="number" step="0.01" id="input-meta-${m.id}" placeholder="Valor R$">
+          <button onclick="ajustarMeta('${m.id}', 1)">Guardar</button>
+          <button class="retirar" onclick="ajustarMeta('${m.id}', -1)">Retirar</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderGrafico(){
+    const canvas = document.getElementById('graficoSemana');
+    if(!canvas || typeof Chart === 'undefined') return;
+
+    const dias = [];
+    const ganhosPorDia = [];
+    const gastosPorDia = [];
+    const baseMensalDia = Number(income.mensal||0)/30;
+
+    for(let i=6; i>=0; i--){
+      const d = new Date();
+      d.setDate(d.getDate()-i);
+      const iso = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      dias.push(d.toLocaleDateString('pt-BR', {weekday:'short'}).replace('.',''));
+      const ganhoDia = incomes.filter(e=>e.data===iso).reduce((s,e)=> s+Number(e.valor||0), 0) + baseMensalDia;
+      ganhosPorDia.push(Number(ganhoDia.toFixed(2)));
+      const gastoDia = expenses.filter(e=>e.data===iso).reduce((s,e)=> s+Number(e.valor||0), 0);
+      gastosPorDia.push(Number(gastoDia.toFixed(2)));
+    }
+
+    if(graficoChart){ graficoChart.destroy(); }
+    graficoChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: dias,
+        datasets: [
+          {
+            label: 'Ganhos',
+            data: ganhosPorDia,
+            borderColor: '#2E7BE0',
+            backgroundColor: 'rgba(46,123,224,0.10)',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 2.5,
+            pointRadius: 3,
+            pointBackgroundColor: '#2E7BE0'
+          },
+          {
+            label: 'Gastos',
+            data: gastosPorDia,
+            borderColor: '#F0455A',
+            backgroundColor: 'rgba(240,69,90,0.08)',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 2.5,
+            pointRadius: 3,
+            pointBackgroundColor: '#F0455A'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode:'index', intersect:false },
+        plugins: {
+          legend: { position: 'bottom', labels:{ font:{ size:11 }, boxWidth:10, usePointStyle:true } }
+        },
+        scales: {
+          y: { beginAtZero:true, ticks:{ font:{ size:10 } }, grid:{ color:'#F2F6FC' } },
+          x: { ticks:{ font:{ size:10 } }, grid:{ display:false } }
+        }
+      }
+    });
+  }
+
+  function renderInicio(){
+    document.getElementById('rendaMensal').value = income.mensal || '';
+
+    const hojeISO = dataHojeISO();
+    const ganhosHoje = incomes.filter(e=>e.data===hojeISO);
+    const gastosHoje = expenses.filter(e=>e.data===hojeISO);
+    const totalGanhoHoje = ganhosHoje.reduce((s,e)=> s+Number(e.valor||0), 0) + (Number(income.mensal||0)/30);
+    const totalGastoHoje = gastosHoje.reduce((s,e)=> s+Number(e.valor||0), 0);
+
+    document.getElementById('ganhoHoje').textContent = formatarMoeda(totalGanhoHoje);
+    document.getElementById('gastoHoje').textContent = formatarMoeda(totalGastoHoje);
+
+    const lancamentosHoje = [
+      ...ganhosHoje.map(e=>({...e, tipo:'ganho'})),
+      ...gastosHoje.map(e=>({...e, tipo:'gasto'}))
+    ].sort((a,b)=> Number(b.id) - Number(a.id));
+
+    const listaL = document.getElementById('listaLancamentosHoje');
+    if(lancamentosHoje.length===0){
+      listaL.innerHTML = '<div class="empty" style="padding:6px 0;">Nenhum lançamento hoje ainda.</div>';
+    } else {
+      listaL.innerHTML = lancamentosHoje.map(e=>`
+        <div class="lancamento-item">
+          <div>
+            <div class="desc">${e.desc}</div>
+            <div class="data-lanc">${formatarData(e.data)}</div>
+          </div>
+          <div style="display:flex; align-items:center;">
+            <span class="valor-lanc ${e.tipo}">${e.tipo==='ganho' ? '+ ' : '- '}${formatarMoeda(e.valor)}</span>
+            <button class="remover" onclick="${e.tipo==='ganho' ? 'removerGanho' : 'removerGasto'}('${e.id}')">✕</button>
+          </div>
+        </div>`).join('');
+    }
+
+    renderGrafico();
+
+    const proximas = [...bills].filter(b=>!b.pago).sort((a,b)=> a.data.localeCompare(b.data)).slice(0,4);
+    document.getElementById('countProximas').textContent = bills.filter(b=>!b.pago).length;
+    const listaP = document.getElementById('listaProximas');
+    if(proximas.length===0){
+      listaP.innerHTML = '<div class="empty">Nenhuma conta pendente. 🎉</div>';
+    } else {
+      listaP.innerHTML = proximas.map(c=>{
+        const dias = diasParaVencer(c.data);
+        let vencClasse = dias<0 ? 'atrasado' : '';
+        let vencTexto = formatarData(c.data) + (dias<0 ? ' (atrasada)' : dias===0 ? ' (vence hoje)' : '');
+        return `
+        <div class="card bill">
+          <div class="icon-badge">${c.icone}</div>
+          <div class="bill-info">
+            <div class="nome">${c.nome}</div>
+            <div class="venc ${vencClasse}">${vencTexto}</div>
+          </div>
+          <div class="bill-valor">
+            <div class="valor">${formatarMoeda(c.valor)}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    document.getElementById('countMetasResumo').textContent = goals.length;
+    const listaM = document.getElementById('listaMetasResumo');
+    if(goals.length===0){
+      listaM.innerHTML = '<div class="empty">Nenhuma meta cadastrada ainda.</div>';
+    } else {
+      listaM.innerHTML = goals.slice(0,3).map(m=>{
+        const pct = Math.min(100, Math.round((m.valorAtual/m.valorAlvo)*100));
+        return `
+        <div class="card goal-card">
+          <div class="goal-top">
+            <div class="icon-badge">${m.icone}</div>
+            <div class="goal-info">
+              <div class="nome">${m.nome}</div>
+              <div class="metas-valores">${formatarMoeda(m.valorAtual)} de ${formatarMoeda(m.valorAlvo)} · ${pct}%</div>
+            </div>
+          </div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join('');
+    }
+
+    const totalPendente = bills.filter(b=>!b.pago).reduce((s,b)=> s+Number(b.valor||0), 0);
+    const hoje = new Date();
+    const totalPago = bills.filter(b=>{
+      if(!b.pago) return false;
+      const d = new Date(b.data+'T00:00:00');
+      return d.getMonth()===hoje.getMonth() && d.getFullYear()===hoje.getFullYear();
+    }).reduce((s,b)=> s+Number(b.valor||0), 0);
+
+    const ganhosMesEntradas = incomes.filter(e=>{
+      const d = new Date(e.data+'T00:00:00');
+      return d.getMonth()===hoje.getMonth() && d.getFullYear()===hoje.getFullYear();
+    }).reduce((s,e)=> s+Number(e.valor||0), 0);
+    const rendaMensalTotal = Number(income.mensal||0) + ganhosMesEntradas;
+    const saldoPrevisto = rendaMensalTotal - totalPendente - totalPago;
+
+    document.getElementById('totalPendente').textContent = formatarMoeda(totalPendente);
+    document.getElementById('totalPago').textContent = formatarMoeda(totalPago);
+    document.getElementById('totalRenda').textContent = formatarMoeda(rendaMensalTotal);
+    const elSaldo = document.getElementById('totalSaldo');
+    elSaldo.textContent = formatarMoeda(saldoPrevisto);
+    elSaldo.classList.remove('positivo','negativo');
+    elSaldo.classList.add(saldoPrevisto < 0 ? 'negativo' : 'positivo');
+  }
+
+  function renderizarTudo(){
+    renderInicio();
+    renderContas();
+    renderMetas();
+  }
+
+  function calcularInvestimento(){
+    const inicial = parseFloat(document.getElementById('calcInicial').value) || 0;
+    const aporte = parseFloat(document.getElementById('calcAporte').value) || 0;
+    const taxaPct = parseFloat(document.getElementById('calcTaxa').value);
+    const meses = parseInt(document.getElementById('calcMeses').value);
+
+    if(isNaN(taxaPct) || isNaN(meses) || meses<=0){
+      alert('Preencha a taxa de juros e o período em meses.');
+      return;
+    }
+
+    const i = taxaPct/100;
+    let saldo = inicial;
+    for(let m=0; m<meses; m++){
+      saldo = saldo*(1+i) + aporte;
+    }
+    const totalInvestido = inicial + (aporte*meses);
+    const juros = saldo - totalInvestido;
+
+    document.getElementById('calcValorFinal').textContent = formatarMoeda(saldo);
+    document.getElementById('calcTotalInvestido').textContent = formatarMoeda(totalInvestido);
+    document.getElementById('calcJuros').textContent = formatarMoeda(juros);
+    document.getElementById('calcResultado').style.display = 'block';
+  }
+
+  iniciarTelaPerfil();
+  if(perfil && perfil.nome) aplicarPerfilNoHeader();
+  renderizarTudo();
+</script>
+
+</body>
+</html>
